@@ -4,7 +4,7 @@ import CheckoutSummary from '../../components/Order/CheckoutSummary/CheckoutSumm
 import ContactData from './ContactData/ContactData';
 
 class Checkout extends Component {
-
+    
     state = {
         ingredients: null,
         totalPrice: 0
