@@ -60,8 +60,7 @@ class BurgerBuilder extends Component {
             disabledInfo[key] = disabledInfo[key] <= 0
         };
 
-        let orderSummary = null
-        console.log(this.props);
+        let orderSummary = null;
         let burger = this.props.error ? <p>Ingredients can't be loaded</p> : <Spinner />;
         if (this.props.ingredients) {
             burger = (

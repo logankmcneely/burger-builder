@@ -6,6 +6,7 @@ import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
 import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
 import * as actions from '../../../store/actions/index';
+import { updateObject, checkValidity } from '../../../shared/utility';
 import styles from './ContactData.module.css';
 
 class ContactData extends Component {
@@ -21,7 +22,7 @@ class ContactData extends Component {
                 value: '',
                 validation: {
                     required: true
-                }, 
+                },
                 valid: false,
                 touched: false
             },
@@ -34,7 +35,7 @@ class ContactData extends Component {
                 value: '',
                 validation: {
                     required: true
-                }, 
+                },
                 valid: false,
                 touched: false
             },
@@ -49,7 +50,7 @@ class ContactData extends Component {
                     required: true,
                     minLength: 5,
                     maxLength: 5
-                }, 
+                },
                 valid: false,
                 touched: false
             },
@@ -62,7 +63,7 @@ class ContactData extends Component {
                 value: '',
                 validation: {
                     required: true
-                }, 
+                },
                 valid: false,
                 touched: false
             },
@@ -70,8 +71,8 @@ class ContactData extends Component {
                 elementType: 'select',
                 elementConfig: {
                     options: [
-                        {value: 'fastest', displayValue: 'Fastest'},
-                        {value: 'cheapest', displayValue: 'Cheapest'},
+                        { value: 'fastest', displayValue: 'Fastest' },
+                        { value: 'cheapest', displayValue: 'Cheapest' },
                     ]
                 },
                 value: 'fastest',
@@ -97,7 +98,7 @@ class ContactData extends Component {
         };
 
         this.props.onOrderBurger(order, this.props.token);
-        
+
     }
 
     checkValidity(value, rules) {
@@ -110,30 +111,33 @@ class ContactData extends Component {
             isValid = value.length >= rules.minLength;
         }
         if (rules.maxLength && isValid) {
-            isValid = value.length <=rules.maxLength;
+            isValid = value.length <= rules.maxLength;
         }
 
         return isValid;
     }
 
     inputChangedHandler = (event, inputIdentifier) => {
-        const updatedOrderForm = {
-            ...this.state.orderForm
-        };
-        const updatedFormElement = {
-            ...updatedOrderForm[inputIdentifier]
-        };
-        updatedFormElement.value = event.target.value;
-        updatedFormElement.valid = this.checkValidity(updatedFormElement.value, updatedFormElement.validation);
-        updatedFormElement.touched = true;
-        updatedOrderForm[inputIdentifier] = updatedFormElement;
-        
+
+        const updatedFormElement = updateObject(
+            this.state.orderForm[inputIdentifier], {
+            value: event.target.value,
+            valid: checkValidity(
+                event.target.value, 
+                this.state.orderForm[inputIdentifier].validation
+            ),
+            touched: true
+        });
+        const updatedOrderForm = updateObject(
+            this.state.orderForm, 
+            {[inputIdentifier]: updatedFormElement}
+        );
         let formIsValid = true;
         for (let inputIdentifiers in updatedOrderForm) {
             formIsValid = updatedOrderForm[inputIdentifiers].valid && formIsValid;
         }
 
-        this.setState({orderForm: updatedOrderForm, formIsValid: formIsValid});
+        this.setState({ orderForm: updatedOrderForm, formIsValid: formIsValid });
     }
 
     render() {
@@ -157,12 +161,12 @@ class ContactData extends Component {
                         changed={(event) => this.inputChangedHandler(event, formElement.id)}
                         invalid={!formElement.config.valid}
                         shouldValidate={formElement.config.validation}
-                        touched={formElement.config.touched}/> 
+                        touched={formElement.config.touched} />
                 ))}
                 <Button
                     btnType="Success"
                     disabled={!this.state.formIsValid}>
-                        ORDER
+                    ORDER
                 </Button>
             </form>);
         if (this.props.loading) {
