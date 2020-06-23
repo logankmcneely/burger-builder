@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import axios from '../../../axios-orders';
 import Button from '../../../components/UI/Button/Button';
 import Spinner from '../../../components/UI/Spinner/Spinner';
@@ -11,6 +11,7 @@ import styles from './ContactData.module.css';
 
 const ContactData = props => {
 
+    //STATE
     const [orderForm, setOrderForm] = useState({
         name: {
             elementType: 'input',
@@ -81,6 +82,28 @@ const ContactData = props => {
     });
     const [formIsValid, setFormIsValid] = useState(false);
 
+    //DISPATCH
+    const dispatch = useDispatch();
+    const onOrderBurger = (orderData, token) => dispatch(actions.purchaseBurger(orderData, token));
+
+    //SELECTORS
+    const [
+        ingredients,
+        totalPrice,
+        loading,
+        token,
+        userId
+    ] = useSelector(state => {
+        return [
+            state.burgerBuilder.ingredients,
+            state.burgerBuilder.totalPrice,
+            state.order.loading,
+            state.auth.token,
+            state.auth.userId
+        ]
+    });
+
+
     const orderHandler = (event) => {
         event.preventDefault();
         const formData = {};
@@ -88,13 +111,13 @@ const ContactData = props => {
             formData[formElementIdentifier] = orderForm[formElementIdentifier].value;
         }
         const order = {
-            ingredients: props.ingredients,
-            price: props.totalPrice,
+            ingredients: ingredients,
+            price: totalPrice,
             orderData: formData,
-            userId: props.userId
+            userId: userId
         };
 
-        props.onOrderBurger(order, props.token);
+        onOrderBurger(order, token);
 
     };
 
@@ -149,7 +172,7 @@ const ContactData = props => {
                 ORDER
                 </Button>
         </form>);
-    if (props.loading) {
+    if (loading) {
         form = <Spinner />;
     }
 
@@ -159,25 +182,6 @@ const ContactData = props => {
             {form}
         </div>
     );
-
-
-}
-
-const mapStateToProps = state => {
-    return {
-        ingredients: state.burgerBuilder.ingredients,
-        totalPrice: state.burgerBuilder.totalPrice,
-        loading: state.order.loading,
-        token: state.auth.token,
-        userId: state.auth.userId
-    }
 };
 
-const mapDispatchToProps = dispatch => {
-    return {
-        onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token))
-    };
-}
-
-
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));
+export default withErrorHandler(ContactData, axios);
