@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux'
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux'
 import { Redirect } from 'react-router-dom';
 
 import Input from '../../components/UI/Input/Input';
@@ -11,6 +11,7 @@ import { updateObject, checkValidity } from '../../shared/utility';
 
 const Auth = props => {
 
+    //STATE
     const [controls, setControls] = useState({
         email: {
             elementType: 'input',
@@ -43,7 +44,31 @@ const Auth = props => {
     });
     const [isSignup, setIsSignup] = useState(true);
 
-    const {onSetAuthRedirectPath, buildingBurger, authRedirectPath} = props;
+    //DISPATCH
+    const dispatch = useDispatch();
+    const onAuth = (email, password, isSignup) => dispatch(actions.auth(email, password, isSignup));
+    const onSetAuthRedirectPath = useCallback(
+        () => dispatch(actions.setAuthRedirectPath('/')),
+        [dispatch]
+    );
+
+    //SELECTORS
+    const [
+        loading,
+        error,
+        isAuthenticated,
+        authRedirectPath,
+        buildingBurger
+    ] = useSelector(state => {
+        return [
+            state.auth.loading,
+            state.auth.error,
+            state.auth.token !== null,
+            state.auth.authRedirectPath,
+            state.burgerBuilder.building
+        ]
+    });
+
 
     useEffect(() => {
         if (!buildingBurger && authRedirectPath !== '/') {
@@ -67,7 +92,7 @@ const Auth = props => {
 
     const submitHandler = (event) => {
         event.preventDefault();
-        props.onAuth(
+        onAuth(
             controls.email.value,
             controls.password.value,
             isSignup
@@ -100,22 +125,22 @@ const Auth = props => {
 
     ));
 
-    if (props.loading) {
+    if (loading) {
         form = <Spinner />;
     }
 
     let header = <h1>{isSignup ? "SIGN UP" : "SIGN IN"}</h1>
 
-    if (props.error) {
-        header = <p style={{ color: 'red' }}>{props.error.message}</p>
+    if (error) {
+        header = <p style={{ color: 'red' }}>{error.message}</p>
     }
 
 
 
     return (
         <div className={styles.Auth}>
-            {props.isAuthenticated
-                ? <Redirect to={props.authRedirectPath} />
+            {isAuthenticated
+                ? <Redirect to={authRedirectPath} />
                 : null}
             {header}
             <form onSubmit={submitHandler}>
@@ -134,21 +159,4 @@ const Auth = props => {
 
 }
 
-const mapStateToProps = state => {
-    return {
-        loading: state.auth.loading,
-        error: state.auth.error,
-        isAuthenticated: state.auth.token !== null,
-        authRedirectPath: state.auth.authRedirectPath,
-        buildingBurger: state.burgerBuilder.building
-    };
-};
-
-const mapDispatchToProps = dispatch => {
-    return {
-        onAuth: (email, password, isSignup) => dispatch(actions.auth(email, password, isSignup)),
-        onSetAuthRedirectPath: () => dispatch(actions.setAuthRedirectPath('/'))
-    }
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Auth);
+export default Auth;
