@@ -1,6 +1,6 @@
-import React, { useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense, useCallback } from 'react';
 import { Route, Switch, withRouter, Redirect } from 'react-router-dom';
-import { connect } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Layout from './hoc/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
@@ -22,7 +22,14 @@ const Auth = React.lazy(() => {
 
 const App = props => {
 
-  const { onTryAutoSignup } = props;
+  const dispatch = useDispatch();
+
+  const onTryAutoSignup = useCallback(
+    () => dispatch(actions.authCheckState()),
+    [dispatch]
+  );
+
+  const isAuthenticated = useSelector(state => state.auth.token !== null);
 
   useEffect(() => {
     onTryAutoSignup()
@@ -31,19 +38,19 @@ const App = props => {
 
   let routes = (
     <Switch>
-      <Route path="/auth" render={(props)=> <Auth {...props} />} />
+      <Route path="/auth" render={(props) => <Auth {...props} />} />
       <Route path="/" component={BurgerBuilder} />
       <Redirect to="/" />
     </Switch>
   );
 
-  if (props.isAuthenticated) {
+  if (isAuthenticated) {
     routes = (
       <Switch>
-        <Route path="/checkout" render={(props)=> <Checkout {...props}/>} />
-        <Route path="/orders" render={(props)=> <Orders {...props} />} />
+        <Route path="/checkout" render={(props) => <Checkout {...props} />} />
+        <Route path="/orders" render={(props) => <Orders {...props} />} />
         <Route path="/logout" component={Logout} />
-        <Route path="/auth" render={(props)=> <Auth {...props} />} />
+        <Route path="/auth" render={(props) => <Auth {...props} />} />
         <Route path="/" component={BurgerBuilder} />
         <Redirect to="/" />
       </Switch>
@@ -62,16 +69,4 @@ const App = props => {
 
 }
 
-const mapStateToProps = state => {
-  return {
-    isAuthenticated: state.auth.token !== null
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    onTryAutoSignup: () => dispatch(actions.authCheckState())
-  };
-};
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
+export default withRouter(App);
